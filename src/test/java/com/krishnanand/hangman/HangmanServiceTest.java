@@ -80,24 +80,24 @@ public class HangmanServiceTest {
         input.setGameId("gameId");
         input.setGuessesLeft(100);
         input.setWord("______");
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setWord("_____a__");
         expected.setGuessesLeft(99);
         expected.setStatus("Active");
         expected.setMsg("You have selected a");
         expected.setGameId(input.getGameId());
-        ResponseEntity<CharacterSelectionResponse> response = Mockito.mock(ResponseEntity.class);
+        ResponseEntity<GameStatusResponse> response = Mockito.mock(ResponseEntity.class);
         Mockito.when(response.getBody()).thenReturn(expected);
         Mockito.doReturn(response).when(this.restTemplate).exchange(
             Mockito.any(String.class), Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class),
-            Mockito.eq(CharacterSelectionResponse.class));
-        CharacterSelectionResponse actual = this.hangmanService.playHangman(input, 'a');
+            Mockito.eq(GameStatusResponse.class));
+        GameStatusResponse actual = this.hangmanService.playHangman(input, 'a');
         Assert.assertEquals(actual, expected);
         ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         Mockito.verify(this.restTemplate).exchange(
             stringCaptor.capture(), Mockito.eq(HttpMethod.POST), entityCaptor.capture(), Mockito
-                .eq(CharacterSelectionResponse.class));
+                .eq(GameStatusResponse.class));
         Assert.assertEquals(stringCaptor.getValue(),
             "http://int-sys.usr.space/hangman/games/" + input.getGameId() + "/guesses");
         @SuppressWarnings("unchecked")
@@ -113,7 +113,7 @@ public class HangmanServiceTest {
 
     @Test
     public void testIsPuzzleSolved_ForIncompleteTest() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setWord("_____a__");
         expected.setGuessesLeft(99);
         expected.setStatus("Active");
@@ -123,25 +123,22 @@ public class HangmanServiceTest {
 
     @Test
     public void testIsPuzzleSolved_ForCompleteTest() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
-        expected.setWord("complete");
-        expected.setGuessesLeft(0);
-        expected.setStatus("inactive");
-        expected.setMsg("You have selected e");
+        GameStatusResponse expected = new GameStatusResponse();
+        expected.setError("game completed");
         Assert.assertTrue(this.hangmanService.isPuzzleSolved(expected));
 
     }
 
     @Test
     public void testIsPuzzleSolved_ForErrorCondition() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setError("character u already played");
         Assert.assertFalse(this.hangmanService.isPuzzleSolved(expected));
     }
 
     @Test
     public void testAreAttemptsExhausted_ForIncompleteTest() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setWord("_____a__");
         expected.setGuessesLeft(99);
         expected.setStatus("Active");
@@ -151,7 +148,7 @@ public class HangmanServiceTest {
 
     @Test
     public void testAreAttempts_ForCompleteTest() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setWord("__comple");
         expected.setGuessesLeft(0);
         expected.setStatus("inactive");
@@ -162,7 +159,7 @@ public class HangmanServiceTest {
 
     @Test
     public void testAreAttemptsExhausted_ForErrorCondition() throws Exception {
-        CharacterSelectionResponse expected = new CharacterSelectionResponse();
+        GameStatusResponse expected = new GameStatusResponse();
         expected.setError("character u already played");
         Assert.assertFalse(this.hangmanService.areAttemptsExhausted(expected));
     }

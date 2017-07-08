@@ -20,16 +20,24 @@ public interface IHangmanService {
      * @param c character to be for verification
      * @return value object representing the outcome of a single hangman attempt
      */
-    CharacterSelectionResponse playHangman(InitialisationResponse response, char c);
+    GameStatusResponse playHangman(InitialisationResponse response, char c);
 
     /**
      * Returns {@code true} if the puzzle is solved.
      */
-    boolean isPuzzleSolved(CharacterSelectionResponse response);
+    boolean isPuzzleSolved(GameStatusResponse response);
 
     /**
      * Returns {@code true} if all attempts are exhausted
      */
-    boolean areAttemptsExhausted(CharacterSelectionResponse response);
+    boolean areAttemptsExhausted(GameStatusResponse response);
+
+    /**
+     * Finds the current game status.
+     *
+     * @param gameId unique Id
+     * @return response upon querying
+     */
+    GameStatusResponse findCurrentGameStatus(String gameId);
 
 }

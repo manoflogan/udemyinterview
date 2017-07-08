@@ -53,7 +53,7 @@ public class HangmanDelegate implements IHangmanDelegate {
                         + "quotes) to " + "quit the game.");
             }
             str = scanner.next();
-            CharacterSelectionResponse response = null;
+            GameStatusResponse response = null;
             boolean isPuzzleSolved = false;
             boolean areAttemptedExhausted = false;
             boolean didUserQuit = false;
@@ -71,10 +71,12 @@ public class HangmanDelegate implements IHangmanDelegate {
                         }
                     }
                 }
-                if (this.hangmanService.isPuzzleSolved(response)) {
+                GameStatusResponse gameStatus =
+                    this.hangmanService.findCurrentGameStatus(response.getGameId());
+                if (this.hangmanService.isPuzzleSolved(gameStatus)) {
                     isPuzzleSolved = true;
                     break;
-                } else if (this.hangmanService.areAttemptsExhausted(response)) {
+                } else if (this.hangmanService.areAttemptsExhausted(gameStatus)) {
                     areAttemptedExhausted = true;
                     break;
                 }

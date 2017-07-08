@@ -20,8 +20,10 @@ public class HangmanService implements IHangmanService {
 
     private static final String INITIALISATION_URL = "http://int-sys.usr.space/hangman/games";
 
-    private static final String HANGMAN_STATUS_URL =
+    private static final String HANGMAN_GAME_URL =
         "http://int-sys.usr.space/hangman/games/%s/guesses";
+
+    private static final String HANGMAN_STATUS_URL = "http://int-sys.usr.space/hangman/games/%s/";
 
 
     private final RestTemplate restTemplate;
@@ -104,37 +106,37 @@ public class HangmanService implements IHangmanService {
      * @return {@code true if the hangman was successful}
      */
     @Override
-    public CharacterSelectionResponse playHangman(InitialisationResponse response, char c) {
-        String requestUri = String.format(HANGMAN_STATUS_URL, response.getGameId());
+    public GameStatusResponse playHangman(InitialisationResponse response, char c) {
+        String requestUri = String.format(HANGMAN_GAME_URL, response.getGameId());
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
         requestParams.add("char", String.valueOf(c));
         return
             this.makeHttpRequest(
-                requestUri, HttpMethod.POST, requestParams, CharacterSelectionResponse.class);
+                requestUri, HttpMethod.POST, requestParams, GameStatusResponse.class);
     }
 
     /**
      * Returns {@code true} if the puzzle is solved.
      */
     @Override
-    public boolean isPuzzleSolved(CharacterSelectionResponse response) {
-        if (response == null || (response.getError() != null && !response.getError().isEmpty())) {
-            return false;
-        }
-        // If the puzzle is solved, then the word does not contain any underscores (_)
-        return response.getGuessesLeft() == 0 && !response.getWord().contains("_");
+    public boolean isPuzzleSolved(GameStatusResponse response) {
+        return response != null && response.getError() != null &&
+            response.getError().equals("game completed");
     }
 
     /**
      * Returns {@code true} if all attempts are exhausted
      */
-    @Override public boolean areAttemptsExhausted(CharacterSelectionResponse response) {
-        if (response == null || (response.getError() != null && !response.getError().isEmpty())) {
-            return false;
-        }
+    @Override public boolean areAttemptsExhausted(GameStatusResponse response) {
+        return response != null && response.getGuessesLeft() == 0 && response.getStatus() != null &&
+            response.getStatus().equals("inactive");
+    }
 
-        return response.getGuessesLeft() == 0 && (response.getWord() != null && response.getWord()
-            .contains("_"));
+    @Override
+    public GameStatusResponse findCurrentGameStatus(String gameId) {
+        String url = String.format(HANGMAN_STATUS_URL, gameId);
+        return this.makeHttpRequest(url, HttpMethod.GET, null,
+            GameStatusResponse.class);
     }
 
 
@@ -164,12 +166,17 @@ public class HangmanService implements IHangmanService {
             }
         };
         this.restTemplate.setErrorHandler(handler);
-        HttpHeaders httpHeaders = new HttpHeaders();
+
         // Since post parameters are required to be sent as form data, the content type must
         // be "application/x-www-form-urlencoded".
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity<MultiValueMap<String, String>> httpEntity =
-            new HttpEntity<>(requestParams, httpHeaders);
+        HttpEntity<MultiValueMap<String, String>> httpEntity = null;
+        if (httpMethod == HttpMethod.POST) {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            httpEntity =
+                new HttpEntity<>(requestParams, httpHeaders);
+        }
+
         ResponseEntity<T> responseEntity =
             this.restTemplate.exchange(url, httpMethod, httpEntity, clazz);
         return responseEntity.getBody();

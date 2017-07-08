@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * game is played.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CharacterSelectionResponse {
+public class GameStatusResponse {
 
     private String gameId;
 
@@ -85,10 +85,10 @@ public class CharacterSelectionResponse {
         if (obj == null) {
             return false;
         }
-        if (!CharacterSelectionResponse.class.isAssignableFrom(obj.getClass())) {
+        if (!GameStatusResponse.class.isAssignableFrom(obj.getClass())) {
             return false;
         }
-        CharacterSelectionResponse response = (CharacterSelectionResponse) obj;
+        GameStatusResponse response = (GameStatusResponse) obj;
         return this.gameId != null && this.gameId.equals(response.getGameId()) &&
             this.word != null && this.word.equals(response.getWord()) &&
             this.guessesLeft == response.getGuessesLeft() &&

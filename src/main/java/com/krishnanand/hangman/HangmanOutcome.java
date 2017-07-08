@@ -17,7 +17,7 @@ public class HangmanOutcome {
     // exhausted.
     private boolean didUserQuit;
 
-    private CharacterSelectionResponse characterSelectionResponse;
+    private GameStatusResponse characterSelectionResponse;
 
     public boolean isWasPuzzleSolved() {
         return wasPuzzleSolved;
@@ -43,12 +43,12 @@ public class HangmanOutcome {
         this.didUserQuit = didUserQuit;
     }
 
-    public CharacterSelectionResponse getCharacterSelectionResponse() {
+    public GameStatusResponse getCharacterSelectionResponse() {
         return characterSelectionResponse;
     }
 
     public void setCharacterSelectionResponse(
-        CharacterSelectionResponse characterSelectionResponse) {
+        GameStatusResponse characterSelectionResponse) {
         this.characterSelectionResponse = characterSelectionResponse;
     }
 
