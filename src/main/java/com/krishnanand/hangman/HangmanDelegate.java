@@ -43,8 +43,20 @@ public class HangmanDelegate implements IHangmanDelegate {
         String str = "";
         try (Scanner scanner = new Scanner(System.in)) {
             // Not validating email address here.
-            String email = scanner.next();
-            InitialisationResponse initResponse = this.hangmanService.register(email);
+            InitialisationResponse initResponse = null;
+            while(initResponse == null || initResponse.getError() != null) {
+                String email = scanner.next();
+                initResponse = this.hangmanService.register(email);
+                if (initResponse != null && initResponse.getError() != null) {
+                    if (LOGGER.isErrorEnabled()) {
+                        LOGGER.error(
+                            "The " + email + " address is invalid. Please enter a valid email "
+                                + "address");
+                    }
+                } else {
+                    break;
+                }
+            }
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("The hangman puzzle question = " + initResponse.getWord());
                 LOGGER.info("You have " + initResponse.getGuessesLeft() + " guesses remaining");
