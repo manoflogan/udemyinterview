@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="dsandalgorithmstest">
+    <test name="datastructures">
+        <classes>
+           <class name="com.krishnanand.hangman.HangmanServiceTest" />
+        </classes>
+    </test>
+</suite>

@@ -38,15 +38,23 @@ public class HangmanService implements IHangmanService {
     }
 
     /**
-     * Register's the email to play hangman.
+     * Invokes the restful service to trigger hangman game initialisation.
+     *
+     * <p>The request URI accepts "email address" as a value for POST parameter "email".</p>
+     *
+     * @param email email address to be initialised.
+     * @return parsed initialisation response
      *
      * @param email email address to be registered
      * @return value object representing the response returned by the backend.
      */
+    // Package scope for only testing purposes.
     @Override public InitialisationResponse register(String email) {
-        // Check if the token exists. If not, then mail the initialisation call.
-        // Otherwise, reuse the token. Not checking for expiry or invalidity.
-        return this.startTheGame(email);
+        // Appending form data.
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("email", email);
+        return this.makeHttpRequest(
+            INITIALISATION_URL, HttpMethod.POST, map, InitialisationResponse.class);
     }
 
     /**
@@ -97,7 +105,12 @@ public class HangmanService implements IHangmanService {
      */
     @Override
     public CharacterSelectionResponse playHangman(InitialisationResponse response, char c) {
-        return this.solve(response, c);
+        String requestUri = String.format(HANGMAN_STATUS_URL, response.getGameId());
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("char", String.valueOf(c));
+        return
+            this.makeHttpRequest(
+                requestUri, HttpMethod.POST, requestParams, CharacterSelectionResponse.class);
     }
 
     /**
@@ -124,22 +137,6 @@ public class HangmanService implements IHangmanService {
             .contains("_"));
     }
 
-    /**
-     * Invokes the restful service to trigger hangman game initialisation.
-     *
-     * <p>The request URI accepts "email address" as a value for POST parameter "email".</p>
-     *
-     * @param email email address to be initialised.
-     * @return parsed initialisation response
-     */
-    // Package scope for only testing purposes.
-    InitialisationResponse startTheGame(String email) {
-        // Appending form data.
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("email", email);
-        return this.makeHttpRequest(
-            INITIALISATION_URL, HttpMethod.POST, map, InitialisationResponse.class);
-    }
 
     /**
      * Abstraction to make a http request.
@@ -178,22 +175,6 @@ public class HangmanService implements IHangmanService {
         return responseEntity.getBody();
     }
 
-    /**
-     * Invokes a restful verification service to check if the character is present in the string.
-     *
-     *
-     * @return {@code true} if the game is solved; {@code false} otherwise
-     */
-    CharacterSelectionResponse solve(InitialisationResponse response, char c) {
-
-        String requestUri = String.format(HANGMAN_STATUS_URL, response.getGameId());
-
-        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-            requestParams.add("char", String.valueOf(c));
-        return
-            this.makeHttpRequest(
-                requestUri, HttpMethod.POST, requestParams, CharacterSelectionResponse.class);
-    }
 
 
 }
