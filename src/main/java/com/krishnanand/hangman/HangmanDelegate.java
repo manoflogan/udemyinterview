@@ -61,9 +61,13 @@ public class HangmanDelegate implements IHangmanDelegate {
                 char c = str.charAt(0);
                 response = this.hangmanService.playHangman(initResponse, c);
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info(response.getMsg());
-                    LOGGER.info("The hangman puzzle = " + response.getWord());
-                    LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
+                    if (response.getError() != null) {
+                        LOGGER.info(response.getError());
+                    } else {
+                        LOGGER.info(response.getMsg());
+                        LOGGER.info("The hangman puzzle = " + response.getWord());
+                        LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
+                    }
                 }
                 if (this.hangmanService.isPuzzleSolved(response)) {
                     isPuzzleSolved = true;

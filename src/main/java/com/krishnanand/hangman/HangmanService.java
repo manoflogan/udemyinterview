@@ -179,7 +179,7 @@ public class HangmanService implements IHangmanService {
     }
 
     /**
-     * Invokes a restful verification service.
+     * Invokes a restful verification service to check if the character is present in the string.
      *
      *
      * @return {@code true} if the game is solved; {@code false} otherwise
