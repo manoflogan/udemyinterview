@@ -15,7 +15,7 @@ public class HangmanDelegate implements IHangmanDelegate {
 
     private final IHangmanService hangmanService;
 
-    private static final Log LOGGER = LogFactory.getLog(Hangman.class);
+    private static final Log LOGGER = LogFactory.getLog(HangmanDelegate.class);
 
     @Autowired
     public HangmanDelegate(IHangmanService hangmanService) {
