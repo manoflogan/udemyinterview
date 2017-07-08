@@ -51,13 +51,45 @@ public class HangmanService implements IHangmanService {
 
     /**
      * <p>The implementation is responsible for the following actions.
+     * <p>The logic is given below:
      * <ul>
-     *     <li>Rest template will initialise the restful call to start the game with a
-     *     unique email address.</li>
-     *     <li>Rest template will make one call for a single character to to the backend service
-     *     to verify if the character is correct.</li>
+     *     <li>The number of available guesses is checked. The game can only proceed if the
+     *     the number of available guesses is greater than 0. If number of guesses equal zero,
+     *     then the game is supposed to end.</li>
+     *     <li>The application makes a HTTP post request to the endpoint with the appropriate
+     *     game id in the request URI.</li>
+     *     <li>Verify the response value. For an unsolved puzzle, the sample response is
+     *         <pre class="code">
+     *             {"gameId":"<randomly generated value>"","status":"active",
+     *             "word":"___r__d","guessesLeft":9, "msg":"You have guessed h"}
+     *         </pre>
+     *    </li>
+     *     <li> If the {@code guessesLeft} value equals {@code 0}, and {@code status} equals
+     *         "inactive", then it implies that the game is over. That means that the player has
+     *         either solved the puzzle, or exhausted the number of attempts.
+     *         <ul>
+     *             <li>In this event, the {@code msg} is checked for any success indicator.</li>
+     *             <li>If the {@code msg} contains string {@code Congrats}, then the player has
+     *             won the game. In this event, the sample response is
+     *             {@code {"gameId":"aab305a27efb","status":"inactive",
+     *               "word":"phoneticogrammatical","guessesLeft":0,
+     *               "msg":"Congrats! You have solved this hangman!"}}
+     *             </li>
+     *             <li>If the player has exhausted all attempts, then the following message
+     *             format is observed.
+     *             {@code
+     *               {"gameId":"30b1f76980df","status":"inactive",
+     *               "word":"de_ce_de_tali__","guessesLeft":0,
+     *               "msg":"You have guessed k. But you didn't solve hangman! The answer was
+     *               descendentalism"}}</li>
+     *              <li>The implementation checks for {@code didn't solve hangman} string. If
+     *              found, then the puzzle was not solved.</li>
+     *              <li>An error message in the format will be returned as 4XX error, and needs
+     *              to be handled.</li>
+     *         </ul>
+     *     </li>
+     *
      * </ul>
-     * </p>
      *
      * @param response value object representing the initialisation data.
      * @param c character to be for verification
@@ -147,47 +179,8 @@ public class HangmanService implements IHangmanService {
     }
 
     /**
-     * Tries to solve the hangman problem.
+     * Invokes a restful verification service.
      *
-     * <p>The logic is given below:
-     * <ul>
-     *     <li>The number of available guesses is checked. The game can only proceed if the
-     *     the number of available guesses is greater than 0. If number of guesses equal zero,
-     *     then the game is supposed to end.</li>
-     *     <li>The application makes a HTTP post request to the endpoint with the appropriate
-     *     game id in the request URI.</li>
-     *     <li>Verify the response value. For an unsolved puzzle, the sample response is
-     *         <pre class="code">
-     *             {"gameId":"<randomly generated value>"","status":"active",
-     *             "word":"___r__d","guessesLeft":9, "msg":"You have guessed h"}
-     *         </pre>
-     *    </li>
-     *     <li> If the {@code guessesLeft} value equals {@code 0}, and {@code status} equals
-     *         "inactive", then it implies that the game is over. That means that the player has
-     *         either solved the puzzle, or exhausted the number of attempts.
-     *         <ul>
-     *             <li>In this event, the {@code msg} is checked for any success indicator.</li>
-     *             <li>If the {@code msg} contains string {@code Congrats}, then the player has
-     *             won the game. In this event, the sample response is
-     *             {@code {"gameId":"aab305a27efb","status":"inactive",
-     *               "word":"phoneticogrammatical","guessesLeft":0,
-     *               "msg":"Congrats! You have solved this hangman!"}}
-     *             </li>
-     *             <li>If the player has exhausted all attempts, then the following message
-     *             format is observed.
-     *             {@code
-     *               {"gameId":"30b1f76980df","status":"inactive",
-     *               "word":"de_ce_de_tali__","guessesLeft":0,
-     *               "msg":"You have guessed k. But you didn't solve hangman! The answer was
-     *               descendentalism"}}</li>
-     *              <li>The implementation checks for {@code didn't solve hangman} string. If
-     *              found, then the puzzle was not solved.</li>
-     *              <li>An error message in the format will be returned as 4XX error, and needs
-     *              to be handled.</li>
-     *         </ul>
-     *     </li>
-     *
-     * </ul>
      *
      * @return {@code true} if the game is solved; {@code false} otherwise
      */

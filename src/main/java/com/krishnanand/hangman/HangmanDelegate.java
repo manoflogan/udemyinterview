@@ -2,6 +2,8 @@
 package com.krishnanand.hangman;
 
 import java.util.Scanner;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,8 @@ public class HangmanDelegate implements IHangmanDelegate {
 
     private final IHangmanService hangmanService;
 
+    private static final Log LOGGER = LogFactory.getLog(Hangman.class);
+
     @Autowired
     public HangmanDelegate(IHangmanService hangmanService) {
         this.hangmanService = hangmanService;
@@ -21,18 +25,30 @@ public class HangmanDelegate implements IHangmanDelegate {
     /**
      * Invokes the hangman game.
      *
+     * <p>The implementation is given below:
+     *
+     * <ul>
+     *     <li><Register the hangman by email address. The email will be provided through the command
+     *     line. No client side validation of will be performed.</li>
+     *     <li>Use the acquired token to play hang man.</li>
+     *     <li>Once the hangman game is terminated, display the output.</li>
+     * </ul>
+     *
      * @return value object representing the outcome of the hangman game
      */
     @Override public HangmanOutcome playHangMan() {
-        System.out.print("Enter email address :  ");
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Enter email address :  ");
+        }
         String str = "";
         try (Scanner scanner = new Scanner(System.in)) {
             // Not validating email address here.
             String email = scanner.next();
             InitialisationResponse initResponse = this.hangmanService.register(email);
-            System.out.println(
-                "Enter characters and press return key. Type \"quit\" (without quotes) to "
-                    + "quit the game.");
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(
+                    "Enter characters and press return key. Type \"quit\" (without quotes) to " + "quit the game.");
+            }
             str = scanner.next();
             CharacterSelectionResponse response = null;
             boolean isPuzzleSolved = false;
