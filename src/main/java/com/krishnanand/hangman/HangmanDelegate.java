@@ -65,8 +65,10 @@ public class HangmanDelegate implements IHangmanDelegate {
                         LOGGER.info(response.getError());
                     } else {
                         LOGGER.info(response.getMsg());
-                        LOGGER.info("The hangman puzzle = " + response.getWord());
-                        LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
+                        if (response.getGuessesLeft() > 0) {
+                            LOGGER.info("The hangman puzzle = " + response.getWord());
+                            LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
+                        }
                     }
                 }
                 if (this.hangmanService.isPuzzleSolved(response)) {

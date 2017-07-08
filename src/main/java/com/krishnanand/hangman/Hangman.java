@@ -42,12 +42,6 @@ public class Hangman {
                     "The hangman puzzle has been solved for word " + ho.getCharacterSelectionResponse().getWord());
             }
 
-        } else if (ho.isAllAttemptsExhausted()) {
-            // This has the appropriate error message.
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(
-                    "The hangman puzzle was not solved for word " + ho.getCharacterSelectionResponse().getWord());
-            }
         } else if (ho.isDidUserQuit()) {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("The user quit the hangman puzzle.");
