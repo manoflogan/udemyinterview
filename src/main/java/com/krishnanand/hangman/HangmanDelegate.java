@@ -46,8 +46,11 @@ public class HangmanDelegate implements IHangmanDelegate {
             String email = scanner.next();
             InitialisationResponse initResponse = this.hangmanService.register(email);
             if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("The hangman puzzle question = " + initResponse.getWord());
+                LOGGER.info("You have " + initResponse.getGuessesLeft() + " guesses remaining");
                 LOGGER.info(
-                    "Enter characters and press return key. Type \"quit\" (without quotes) to " + "quit the game.");
+                    "Enter a single character and press return key. Type \"quit\" (without "
+                        + "quotes) to " + "quit the game.");
             }
             str = scanner.next();
             CharacterSelectionResponse response = null;
@@ -57,12 +60,22 @@ public class HangmanDelegate implements IHangmanDelegate {
             while (!str.equals("quit")) {
                 char c = str.charAt(0);
                 response = this.hangmanService.playHangman(initResponse, c);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(response.getMsg());
+                    LOGGER.info("The hangman puzzle = " + response.getWord());
+                    LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
+                }
                 if (this.hangmanService.isPuzzleSolved(response)) {
                     isPuzzleSolved = true;
                     break;
                 } else if (this.hangmanService.areAttemptsExhausted(response)) {
                     areAttemptedExhausted = true;
                     break;
+                }
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(
+                        "Enter  a single character and press return key. Type \"quit\" (without "
+                            + "quotes) to quit the game.");
                 }
                 str = scanner.next();
                 if (str.equals("quit")) {
