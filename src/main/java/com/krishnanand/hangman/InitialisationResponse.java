@@ -69,7 +69,8 @@ public class InitialisationResponse {
         return this.gameId != null && this.gameId.equals(response.getGameId()) &&
             this.word != null && this.word.equals(response.getWord()) &&
             this.guessesLeft == response.getGuessesLeft() &&
-            this.error != null && this.error.equals(response.getError());
+            (this.error == response.getError() || this.error != null && this.error.equals(response
+            .getError()));
     }
 
     @Override public String toString() {

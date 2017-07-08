@@ -92,7 +92,8 @@ public class CharacterSelectionResponse {
         return this.gameId != null && this.gameId.equals(response.getGameId()) &&
             this.word != null && this.word.equals(response.getWord()) &&
             this.guessesLeft == response.getGuessesLeft() &&
-            this.error != null && this.error.equals(response.getError()) &&
+            (this.error == response.getError() || (this.error != null && this.error.equals(response
+                .getError()))) &&
             this.status != null && this.status.equals(response.getStatus()) &&
             this.msg != null && this.msg.equals(response.getMsg());
     }
