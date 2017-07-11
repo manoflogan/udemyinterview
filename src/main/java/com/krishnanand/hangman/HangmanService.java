@@ -2,8 +2,20 @@
 package com.krishnanand.hangman;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -25,8 +37,12 @@ public class HangmanService implements IHangmanService {
 
     private static final String HANGMAN_STATUS_URL = "http://int-sys.usr.space/hangman/games/%s/";
 
+    private static final Log LOG = LogFactory.getLog(HangmanService.class);
+
 
     private final RestTemplate restTemplate;
+
+    private final IWordService wordService;
 
 
     /**
@@ -35,8 +51,9 @@ public class HangmanService implements IHangmanService {
      * @param restTemplate template to use to generate a value.
      */
     @Autowired
-    public HangmanService(RestTemplate restTemplate) {
+    public HangmanService(RestTemplate restTemplate, IWordService wordService) {
         this.restTemplate = restTemplate;
+        this.wordService = wordService;
     }
 
     /**
@@ -102,17 +119,81 @@ public class HangmanService implements IHangmanService {
      * </ul>
      *
      * @param response value object representing the initialisation data.
-     * @param c character to be for verification
      * @return {@code true if the hangman was successful}
      */
     @Override
-    public GameStatusResponse playHangman(InitialisationResponse response, char c) {
+    public GameStatusResponse playHangman(InitialisationResponse response) {
         String requestUri = String.format(HANGMAN_GAME_URL, response.getGameId());
-        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("char", String.valueOf(c));
-        return
-            this.makeHttpRequest(
+        String word = response.getWord();
+        int[] initialCount = this.wordService.getWordCountForWordLength(word);
+        Set<Character> charactersUsed = new HashSet<>();
+        Queue<Character> queue = this.getOrderedCharacters(initialCount, charactersUsed);
+
+        GameStatusResponse gameStatusResponse = null;
+        while(response.getGuessesLeft() > 0){
+            char currentCharacter = queue.remove();
+
+            charactersUsed.add(currentCharacter);
+            MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+            requestParams.add("char", String.valueOf(currentCharacter));
+            // Make the call
+            GameStatusResponse attempt = this.makeHttpRequest(
                 requestUri, HttpMethod.POST, requestParams, GameStatusResponse.class);
+            if (attempt.getError() != null) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info(attempt.getError());
+                }
+            } else {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info(attempt.getMsg());
+                    if (attempt.getGuessesLeft() > 0) {
+                        LOG.info("The hangman puzzle = " + attempt.getWord());
+                        LOG.info("You have " + attempt.getGuessesLeft() + " guesses remaining.");
+                    }
+                }
+            }
+            GameStatusResponse currentStatus = this.findCurrentGameStatus(attempt.getGameId());
+            if (this.isPuzzleSolved(currentStatus)) {
+                currentStatus.setWord(attempt.getWord());
+                return currentStatus;
+            } else if (this.areAttemptsExhausted(currentStatus)) {
+                return attempt;
+            }
+
+
+            if(!attempt.getWord().equals(response.getWord())) {
+                LOG.info("character is present with word " + currentStatus.getWord());
+
+                attempt = currentStatus;
+                int[] characterCountForGuesses=new int[26];
+                this.wordService.search(attempt.getWord(), characterCountForGuesses);
+                queue=getOrderedCharacters(characterCountForGuesses, charactersUsed);
+            }
+            gameStatusResponse = attempt;
+        }
+        return gameStatusResponse;
+    }
+
+    /**
+     * Queue of all successful characters.
+     *
+     * @param chars character array
+     * @param characterUsed all characters
+     * @return
+     */
+    private Queue<Character>  getOrderedCharacters(int[] chars, Set<Character> characterUsed) {
+        Queue<Character> queue = new PriorityQueue<>(new Comparator<Character>() {
+            @Override public int compare(Character a, Character b) {
+                return chars[b -'a']-chars[a-'a'];
+            }
+        });
+        for (int i = 0; i < chars.length; i++) {
+            char ch = (char) (i + 'a');
+            if (!characterUsed.contains(Character.valueOf(ch))) {
+                queue.add(ch);
+            }
+        }
+        return queue;
     }
 
     /**
@@ -153,7 +234,7 @@ public class HangmanService implements IHangmanService {
             MultiValueMap<String, String>  requestParams, Class<T> clazz) {
 
         ResponseErrorHandler handler = new DefaultResponseErrorHandler() {
-            // Only consider this error if no error response is passed.
+            // Don't let Spring handle all the errors.
             @Override public boolean hasError(ClientHttpResponse clientHttpResponse)
                     throws IOException {
                 return false;
@@ -182,6 +263,11 @@ public class HangmanService implements IHangmanService {
         return responseEntity.getBody();
     }
 
-
-
+    /**
+     * Loads the words in a data structure onces the beans are initalised.
+     */
+    @PostConstruct
+    @Override public void loadWords() {
+        this.wordService.loadWordsFromFile();
+    }
 }

@@ -1,7 +1,6 @@
 // Copyright 2017 ManOf Logan. All Rights Reserved.
 package com.krishnanand.hangman;
 
-import java.util.Scanner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,79 +36,24 @@ public class HangmanDelegate implements IHangmanDelegate {
      * @return value object representing the outcome of the hangman game
      */
     @Override public HangmanOutcome playHangMan() {
+
+        // Not validating email address here.
+        InitialisationResponse initResponse = this.hangmanService.register("test@yahoo.com");
+        if (initResponse == null) {
+            throw new IllegalStateException("no initialisation repsonse received");
+        }
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Enter email address :  ");
+            LOGGER.info("The hangman puzzle question = " + initResponse.getWord());
+            LOGGER.info("You have " + initResponse.getGuessesLeft() + " guesses remaining");
         }
-        String str = "";
-        try (Scanner scanner = new Scanner(System.in)) {
-            // Not validating email address here.
-            InitialisationResponse initResponse = null;
-            while(initResponse == null || initResponse.getError() != null) {
-                String email = scanner.next();
-                initResponse = this.hangmanService.register(email);
-                if (initResponse != null && initResponse.getError() != null) {
-                    if (LOGGER.isErrorEnabled()) {
-                        LOGGER.error(
-                            "The " + email + " address is invalid. Please enter a valid email "
-                                + "address");
-                    }
-                } else {
-                    break;
-                }
-            }
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("The hangman puzzle question = " + initResponse.getWord());
-                LOGGER.info("You have " + initResponse.getGuessesLeft() + " guesses remaining");
-                LOGGER.info(
-                    "Enter a single character and press return key. Type \"quit\" (without "
-                        + "quotes) to " + "quit the game.");
-            }
-            str = scanner.next();
-            GameStatusResponse response = null;
-            boolean isPuzzleSolved = false;
-            boolean areAttemptedExhausted = false;
-            boolean didUserQuit = false;
-            while (!str.equals("quit")) {
-                char c = str.charAt(0);
-                response = this.hangmanService.playHangman(initResponse, c);
-                if (LOGGER.isInfoEnabled()) {
-                    if (response.getError() != null) {
-                        LOGGER.info(response.getError());
-                    } else {
-                        LOGGER.info(response.getMsg());
-                        if (response.getGuessesLeft() > 0) {
-                            LOGGER.info("The hangman puzzle = " + response.getWord());
-                            LOGGER.info("You have " + response.getGuessesLeft() + " guesses remaining.");
-                        }
-                    }
-                }
-                GameStatusResponse gameStatus =
-                    this.hangmanService.findCurrentGameStatus(response.getGameId());
-                if (this.hangmanService.isPuzzleSolved(gameStatus)) {
-                    isPuzzleSolved = true;
-                    break;
-                } else if (this.hangmanService.areAttemptsExhausted(gameStatus)) {
-                    areAttemptedExhausted = true;
-                    break;
-                }
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info(
-                        "Enter  a single character and press return key. Type \"quit\" (without "
-                            + "quotes) to quit the game.");
-                }
-                str = scanner.next();
-                if (str.equals("quit")) {
-                    didUserQuit = true;
-                    break;
-                }
-            }
-            HangmanOutcome hm = new HangmanOutcome();
-            hm.setWasPuzzleSolved(isPuzzleSolved);
-            hm.setDidUserQuit(didUserQuit);
-            hm.setAllAttemptsExhausted(areAttemptedExhausted);
-            hm.setCharacterSelectionResponse(response);
-            return hm;
-        }
+
+        GameStatusResponse response = this.hangmanService.playHangman(initResponse);
+        HangmanOutcome hm = new HangmanOutcome();
+        hm.setWasPuzzleSolved(this.hangmanService.isPuzzleSolved(response));
+        hm.setAllAttemptsExhausted(this.hangmanService.areAttemptsExhausted(response));
+        hm.setCharacterSelectionResponse(response);
+        return hm;
+
 
     }
 }

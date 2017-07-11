@@ -27,11 +27,14 @@ public class HangmanServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private WordService wordService;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        this.hangmanService = new HangmanService(this.restTemplate);
+        this.hangmanService = new HangmanService(this.restTemplate, this.wordService);
     }
 
     @AfterMethod
@@ -75,23 +78,37 @@ public class HangmanServiceTest {
 
     @Test()
     public void testPlayHangman() throws Exception {
-        String email = "foo@foomail.com";
+
         InitialisationResponse input = new InitialisationResponse();
         input.setGameId("gameId");
-        input.setGuessesLeft(100);
         input.setWord("______");
+        InitialisationResponse spyInput = Mockito.spy(input);
+        Mockito.when(spyInput.getGuessesLeft()).thenReturn(Long.valueOf(1), Long.valueOf(0));
+
+
         GameStatusResponse expected = new GameStatusResponse();
+        expected.setGameId("gameId");
         expected.setWord("_____a__");
-        expected.setGuessesLeft(99);
+        expected.setGuessesLeft(0);
         expected.setStatus("Active");
         expected.setMsg("You have selected a");
-        expected.setGameId(input.getGameId());
+
         ResponseEntity<GameStatusResponse> response = Mockito.mock(ResponseEntity.class);
-        Mockito.when(response.getBody()).thenReturn(expected);
         Mockito.doReturn(response).when(this.restTemplate).exchange(
             Mockito.any(String.class), Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class),
             Mockito.eq(GameStatusResponse.class));
-        GameStatusResponse actual = this.hangmanService.playHangman(input, 'a');
+        Mockito.when(response.getBody()).thenReturn(expected);
+
+        Mockito.when(this.wordService.getWordCountForWordLength(spyInput.getWord())).thenReturn(new
+            int[input.getWord().length()]);
+
+
+        Mockito.doReturn(response).when(this.restTemplate).exchange(
+            Mockito.any(String.class), Mockito.eq(HttpMethod.GET), (HttpEntity<?>) Mockito.isNull(),
+            Mockito.eq(GameStatusResponse.class));
+        Mockito.when(response.getBody()).thenReturn(expected);
+        GameStatusResponse actual = this.hangmanService.playHangman(spyInput);
+
         Assert.assertEquals(actual, expected);
         ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);

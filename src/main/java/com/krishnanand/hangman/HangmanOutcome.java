@@ -13,9 +13,6 @@ public class HangmanOutcome {
     // solved.
     private boolean allAttemptsExhausted;
 
-    // If {@code true}, then it implies all the user quit the game before the attempts were
-    // exhausted.
-    private boolean didUserQuit;
 
     private GameStatusResponse characterSelectionResponse;
 
@@ -35,14 +32,6 @@ public class HangmanOutcome {
         this.allAttemptsExhausted = allAttemptsExhausted;
     }
 
-    public boolean isDidUserQuit() {
-        return didUserQuit;
-    }
-
-    public void setDidUserQuit(boolean didUserQuit) {
-        this.didUserQuit = didUserQuit;
-    }
-
     public GameStatusResponse getCharacterSelectionResponse() {
         return characterSelectionResponse;
     }
@@ -56,7 +45,6 @@ public class HangmanOutcome {
         int hashCode = 31;
         hashCode = this.wasPuzzleSolved ? 1032: 8082 + hashCode;
         hashCode = this.allAttemptsExhausted ? 102303: 3223 + hashCode;
-        hashCode = this.didUserQuit ? 30203 : 32023 + hashCode;
         return hashCode;
     }
 
@@ -69,14 +57,13 @@ public class HangmanOutcome {
         }
         HangmanOutcome hm = (HangmanOutcome) obj;
         return  this.wasPuzzleSolved == hm.isWasPuzzleSolved() &&
-            this.allAttemptsExhausted == hm.isAllAttemptsExhausted() &&
-            this.didUserQuit == hm.isDidUserQuit();
+            this.allAttemptsExhausted == hm.isAllAttemptsExhausted();
     }
 
     @Override public String toString() {
         return new StringBuilder(this.getClass().getName()).append("[Was Puzzle Solved = ")
             .append(this.wasPuzzleSolved).append(", All Attempts Exhausted = ")
-            .append(this.allAttemptsExhausted).append(", Did User Quit = ").append(this.didUserQuit)
+            .append(this.allAttemptsExhausted)
             .append("]").toString();
     }
 }

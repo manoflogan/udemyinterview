@@ -17,10 +17,10 @@ public interface IHangmanService {
     /**
      * Implementation of this function will invoke multiple end points to play hangman.
      *
-     * @param c character to be for verification
+     * @param response initialisation to be for verification
      * @return value object representing the outcome of a single hangman attempt
      */
-    GameStatusResponse playHangman(InitialisationResponse response, char c);
+    GameStatusResponse playHangman(InitialisationResponse response);
 
     /**
      * Returns {@code true} if the puzzle is solved.
@@ -39,5 +39,10 @@ public interface IHangmanService {
      * @return response upon querying
      */
     GameStatusResponse findCurrentGameStatus(String gameId);
+
+    /**
+     * Initialise the initial word in our data structure.
+     */
+    void loadWords();
 
 }

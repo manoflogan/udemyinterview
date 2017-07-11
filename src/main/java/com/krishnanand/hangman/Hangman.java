@@ -41,12 +41,6 @@ public class Hangman {
                 LOGGER.info(
                     "The hangman puzzle has been solved for word " + ho.getCharacterSelectionResponse().getWord());
             }
-
-        } else if (ho.isDidUserQuit()) {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("The user quit the hangman puzzle.");
-            }
-
         }
     }
 }
